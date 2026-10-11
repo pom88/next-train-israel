@@ -1,8 +1,8 @@
-const CACHE = 'nti-v1';
+const CACHE = 'nti-v2';
 const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'schedule.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'data/timetable.json'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => Promise.all(SHELL.map((u) => c.add(new Request(u, { cache: 'reload' }))))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
@@ -23,17 +23,10 @@ async function networkFirst(req) {
     if (res.ok) cache.put(req, res.clone());
     return res;
   } catch {
-    const hit = await cache.match(req);
+    const hit = (await cache.match(req, { ignoreSearch: true })) || (req.mode === 'navigate' ? await cache.match('index.html') : null);
     if (hit) return hit;
-    throw new Error('offline and not cached');
+    return Response.error();
   }
-}
-
-async function staleWhileRevalidate(req) {
-  const cache = await caches.open(CACHE);
-  const hit = await cache.match(req, { ignoreSearch: true });
-  const refresh = fetch(req).then((res) => { if (res.ok) cache.put(req, res.clone()); return res; }).catch(() => null);
-  return hit || (await refresh) || (req.mode === 'navigate' ? cache.match('index.html') : Response.error());
 }
 
 self.addEventListener('fetch', (e) => {
@@ -41,5 +34,5 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
-  e.respondWith(url.pathname.endsWith('/data/timetable.json') ? networkFirst(req) : staleWhileRevalidate(req));
+  e.respondWith(networkFirst(req));
 });
