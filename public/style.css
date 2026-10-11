@@ -10,6 +10,7 @@
   --radius: 22px;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
@@ -45,6 +46,24 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 14px 0 6px; padding: 4px; background: var(--card-2); border-radius: 14px; }
 .seg button { border: 0; background: transparent; padding: 12px 8px; border-radius: 10px; font-weight: 600; color: var(--muted); min-height: 48px; }
 .seg button[aria-selected="true"] { background: var(--accent); color: #05281a; }
+
+.seg.three { grid-template-columns: repeat(3, 1fr); }
+.seg.sub { margin: 14px 0 10px; }
+.plan-title { flex: 1; align-self: center; font-size: 22px; font-weight: 700; padding-inline: 6px; }
+.route { display: flex; gap: 10px; align-items: stretch; margin-top: 14px; }
+.route-fields { flex: 1; min-width: 0; display: grid; gap: 8px; }
+.field { display: grid; text-align: start; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 10px 14px; min-height: 60px; min-width: 0; }
+.swap { align-self: center; padding: 0; min-width: 52px; min-height: 52px; display: grid; place-items: center; color: var(--accent); }
+.arrive-row { display: flex; align-items: center; gap: 12px; margin: 0 0 6px; color: var(--muted); font-weight: 600; }
+.arrive-row input { font: inherit; font-size: 22px; font-weight: 700; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; min-height: 48px; color-scheme: dark; }
+.arrive-row .day { color: var(--warn); font-size: 13px; }
+.row.journey { grid-template-columns: auto 1fr auto; }
+.row.journey .arrive { min-width: 76px; }
+.row.journey .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.row.journey .t { font-size: 28px; line-height: 1.1; }
+.row.journey.best { border-color: var(--accent); }
+.row.journey .meta .to { white-space: normal; }
+.plan-note { margin: 14px 4px 0; color: var(--muted); font-size: 13px; text-align: center; }
 
 .hero { text-align: center; padding: 22px 8px 8px; }
 .hero-label { color: var(--muted); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; }
@@ -95,3 +114,8 @@ input[type="search"] { width: 100%; font: inherit; font-size: 18px; color: var(-
 @media (prefers-reduced-motion: no-preference) {
   .hero-num { transition: opacity .15s; }
 }
+
+.stations .group { padding: 12px 6px 4px; font-size: 12px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; font-weight: 600; }
+.stations .recent-item { display: flex; align-items: stretch; border-bottom: 1px solid var(--line); }
+.stations .recent-item button:first-child { border-bottom: 0; flex: 1; }
+.stations .recent-item .x { width: 52px; flex: none; border: 0; border-bottom: 0; justify-content: center; align-items: center; padding: 0; color: var(--muted); font-size: 18px; }

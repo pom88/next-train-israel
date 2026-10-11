@@ -152,7 +152,7 @@ for (const [tripId, list] of tripCalls) {
   if (list.length < 2) continue;
   const tripIdx = outTrips.length;
   outTrips.push([trip.number, trip.serviceId, stationIndex.get(list[0].stopId), stationIndex.get(list[list.length - 1].stopId)]);
-  for (const c of list) calls[stationIndex.get(c.stopId)].push([tripIdx, c.arr, c.dep]);
+  for (const c of list) calls[stationIndex.get(c.stopId)].push([tripIdx, c.arr, c.dep, c.seq]);
 }
 for (const c of calls) c.sort((a, b) => a[1] - b[1]);
 

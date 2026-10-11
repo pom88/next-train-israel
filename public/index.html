@@ -18,22 +18,57 @@
         <span class="station-name" id="stationName">…</span>
         <svg class="chev" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
+      <div id="planTitle" class="plan-title" data-i18n="planTitle" hidden>Journey planner</div>
       <button id="langBtn" class="pill" aria-label="Language / שפה">עב</button>
     </header>
 
-    <div class="seg" role="tablist">
+    <div class="seg three" id="modeTabs" role="tablist">
       <button role="tab" id="tabArr" data-mode="arrivals" data-i18n="arrivals" aria-selected="true">Arriving</button>
       <button role="tab" id="tabDep" data-mode="departures" data-i18n="departures" aria-selected="false">Departing</button>
+      <button role="tab" id="tabPlan" data-mode="plan" data-i18n="plan" aria-selected="false">Plan</button>
     </div>
 
-    <section class="hero" id="hero" aria-live="polite" aria-atomic="true"></section>
+    <div id="board">
+      <section class="hero" id="hero" aria-live="polite" aria-atomic="true"></section>
 
-    <button id="basis" class="basis" type="button"></button>
+      <button id="basis" class="basis" type="button"></button>
 
-    <section aria-labelledby="followHead">
-      <h2 id="followHead" data-i18n="following">Following trains</h2>
-      <ol id="list" class="list"></ol>
-    </section>
+      <section aria-labelledby="followHead">
+        <h2 id="followHead" data-i18n="following">Following trains</h2>
+        <ol id="list" class="list"></ol>
+      </section>
+    </div>
+
+    <div id="planner" hidden>
+      <div class="route">
+        <div class="route-fields">
+          <button id="fromBtn" class="field" type="button" aria-haspopup="dialog">
+            <span class="station-label" data-i18n="fromLabel">From</span>
+            <span class="station-name" id="fromName"></span>
+          </button>
+          <button id="toBtn" class="field" type="button" aria-haspopup="dialog">
+            <span class="station-label" data-i18n="toLabel">To</span>
+            <span class="station-name" id="toName"></span>
+          </button>
+        </div>
+        <button id="swapBtn" class="swap pill" type="button" data-i18n-aria="swap" aria-label="Swap stations">
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M8 4v16M8 4L4 8M8 4l4 4M16 20V4M16 20l-4-4M16 20l4-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="seg sub" id="planModeTabs" role="tablist">
+        <button role="tab" data-pm="now" data-i18n="leaveNow" aria-selected="true">Leave now</button>
+        <button role="tab" data-pm="arrive" data-i18n="arriveBy" aria-selected="false">Arrive by</button>
+      </div>
+      <label id="arriveRow" class="arrive-row" hidden>
+        <span data-i18n="arriveBy">Arrive by</span>
+        <input type="time" id="arriveTime">
+        <span id="arriveDay" class="day"></span>
+      </label>
+      <h2 data-i18n="planHead">Journeys, sorted by arrival</h2>
+      <p id="planMsg" class="hero-empty" hidden></p>
+      <ol id="journeys" class="list"></ol>
+      <p class="plan-note" data-i18n="planNote"></p>
+    </div>
 
     <div id="notice" class="notice" hidden></div>
     <footer id="foot" class="foot"></footer>

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { serviceTimeToEpoch, upcoming, dataStatus, nearestStation, ymdOf } from '../public/schedule.js';
+import { serviceTimeToEpoch, upcoming, plan, dataStatus, nearestStation, ymdOf } from '../public/schedule.js';
 
 const iso = (ms) => new Date(ms).toISOString();
 
@@ -100,4 +100,68 @@ test('real timetable: every weekday morning in the valid window has a train with
     checkedDays++;
   }
   assert.ok(checkedDays >= 8);
+});
+
+// --- journey planner ---
+// A -> B -> C. X: A 08:00, B 09:00, C 10:00 (direct). Y: A 08:30, B 09:20. Z: B 09:30, C 10:30. W: C 11:00 -> A 12:00.
+const H = 3600;
+const net = {
+  validFrom: '20261001', validTo: '20261031',
+  stations: [{}, {}, {}],
+  services: { S: ['1111111', '20261001', '20261031'] },
+  trips: [['X', 'S', 0, 2], ['Y', 'S', 0, 1], ['Z', 'S', 1, 2], ['W', 'S', 2, 0]],
+  calls: [
+    [[0, 8 * H, 8 * H, 1], [1, 8.5 * H, 8.5 * H, 1], [3, 12 * H, 12 * H, 2]],
+    [[0, 9 * H, 9 * H + 60, 2], [1, 9 * H + 1200, 9 * H + 1200, 2], [2, 9.5 * H, 9.5 * H, 1]],
+    [[0, 10 * H, 10 * H, 3], [2, 10.5 * H, 10.5 * H, 2], [3, 11 * H, 11 * H, 1]],
+  ],
+};
+const at = (h, m = 0) => Date.parse('2026-10-11T00:00:00Z') + ((h - 3) * 60 + m) * 60000; // Sun 2026-10-11, Israel summer time
+
+test('plan: sorted by arrival; direct and a later change both offered, dominated options dropped', () => {
+  const r = plan(net, 0, 2, at(7));
+  assert.deepEqual(r.slice(0, 2).map((j) => j.legs.map((l) => l.number)), [['X'], ['Y', 'Z']]);
+  assert.equal(iso(r[0].arr), iso(at(10)));
+  assert.equal(iso(r[1].arr), iso(at(10, 30)));
+  assert.ok(r.every((j, i) => i === 0 || j.arr >= r[i - 1].arr));
+  assert.ok(!r.some((j) => j.legs[0].number === 'X' && j.legs.length === 2));
+});
+
+test('plan: a change needs at least 4 minutes', () => {
+  const tight = structuredClone(net);
+  tight.calls[1][2] = [2, 9 * H + 1320, 9 * H + 1320, 1]; // Z leaves B 2 minutes after Y arrives
+  const r = plan(tight, 0, 2, at(7));
+  assert.ok(r.slice(0, 2).every((j) => j.legs.length === 1));
+});
+
+test('plan: arriveBy keeps only journeys that arrive in time', () => {
+  const r = plan(net, 0, 2, at(7), { arriveBy: at(10, 15) });
+  assert.equal(r.length, 1);
+  assert.equal(r[0].legs[0].number, 'X');
+});
+
+test('plan: arriveBy lists the latest arrival first', () => {
+  const r = plan(net, 0, 2, at(7), { arriveBy: at(11) });
+  assert.deepEqual(r.map((j) => j.legs.map((l) => l.number)), [['Y', 'Z'], ['X']]);
+});
+
+test('plan: same station gives nothing; reverse direction only uses trips that run that way', () => {
+  assert.deepEqual(plan(net, 1, 1, at(7)), []);
+  const r = plan(net, 2, 0, at(7));
+  assert.equal(r[0].legs[0].number, 'W');
+});
+
+test('plan: real timetable, Beer Sheva -> Tel Aviv by arrival, both languages of data resolve', async () => {
+  const data = JSON.parse(await readFile(new URL('../public/data/timetable.json', import.meta.url)));
+  const from = data.stations.findIndex((s) => s.id === '17084');
+  const to = data.stations.findIndex((s) => s.id === '17038');
+  const now = Date.parse('2026-10-12T06:00:00Z');
+  const r = plan(data, from, to, now, { limit: 6 });
+  assert.equal(r.length, 6);
+  for (let i = 0; i < r.length; i++) {
+    assert.ok(r[i].dep >= now - 30000 && r[i].arr > r[i].dep);
+    if (i) assert.ok(r[i].arr >= r[i - 1].arr);
+  }
+  const by = plan(data, from, to, now, { arriveBy: Date.parse('2026-10-12T09:00:00Z') });
+  assert.ok(by.length > 0 && by.every((j) => j.arr <= Date.parse('2026-10-12T09:00:00Z')));
 });
