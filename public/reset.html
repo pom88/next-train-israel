@@ -1,0 +1,15 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resetting…</title>
+<body style="font:20px system-ui;background:#0a1f17;color:#ecf8f1;display:grid;place-items:center;min-height:100vh;margin:0">
+<p id="m">Resetting app… / מאפס…</p>
+<script>
+(async () => {
+  try {
+    for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+    for (const k of await caches.keys()) await caches.delete(k);
+  } catch (e) {}
+  location.replace('./?r=' + Date.now());
+})();
+</script>
