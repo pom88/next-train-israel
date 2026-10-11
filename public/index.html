@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a1f17">
+  <title>Next Train Israel</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="app" aria-live="off">
+    <header class="top">
+      <button id="stationBtn" class="station" aria-haspopup="dialog">
+        <span class="station-label" data-i18n="station">Station</span>
+        <span class="station-name" id="stationName">…</span>
+        <svg class="chev" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="langBtn" class="pill" aria-label="Language / שפה">עב</button>
+    </header>
+
+    <div class="seg" role="tablist">
+      <button role="tab" id="tabArr" data-mode="arrivals" data-i18n="arrivals" aria-selected="true">Arriving</button>
+      <button role="tab" id="tabDep" data-mode="departures" data-i18n="departures" aria-selected="false">Departing</button>
+    </div>
+
+    <section class="hero" id="hero" aria-live="polite" aria-atomic="true"></section>
+
+    <button id="basis" class="basis" type="button"></button>
+
+    <section aria-labelledby="followHead">
+      <h2 id="followHead" data-i18n="following">Following trains</h2>
+      <ol id="list" class="list"></ol>
+    </section>
+
+    <div id="notice" class="notice" hidden></div>
+    <footer id="foot" class="foot"></footer>
+  </main>
+
+  <dialog id="picker" aria-labelledby="pickerTitle">
+    <form method="dialog" class="sheet">
+      <div class="sheet-head">
+        <h2 id="pickerTitle" data-i18n="chooseStation">Choose station</h2>
+        <button class="pill" value="close" data-i18n="close">Close</button>
+      </div>
+      <input id="search" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" data-i18n-ph="search">
+      <button type="button" id="nearBtn" class="near" data-i18n="nearest">Use my location</button>
+      <p id="nearMsg" class="near-msg" hidden></p>
+      <ul id="stationList" class="stations"></ul>
+    </form>
+  </dialog>
+
+  <dialog id="info" aria-labelledby="infoTitle">
+    <form method="dialog" class="sheet">
+      <div class="sheet-head">
+        <h2 id="infoTitle" data-i18n="infoTitle">About these times</h2>
+        <button class="pill" value="close" data-i18n="close">Close</button>
+      </div>
+      <p data-i18n="infoBody"></p>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

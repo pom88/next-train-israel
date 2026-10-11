@@ -1,0 +1,12 @@
+{
+  "name": "next-train-israel",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "When is the next train at this Israeli station?",
+  "scripts": {
+    "build:data": "node scripts/build-data.mjs",
+    "dev": "node scripts/serve.mjs",
+    "test": "node --test test/*.test.mjs"
+  }
+}
