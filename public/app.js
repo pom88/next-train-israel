@@ -10,7 +10,7 @@ const STRINGS = {
     locFar: (km) => `Nearest station is about ${Math.round(km)} km away.`,
     min: 'min', now: 'Now', today: 'Today', tomorrow: 'Tomorrow',
     hm: (h, m) => `${h}h ${String(m).padStart(2, '0')}m`,
-    to: (x) => `To ${x}`, startsHere: 'Starts here', endsHere: 'Ends here',
+    to: (x) => `To ${x}`, from: (x) => `From ${x}`, startsHere: 'Starts here', endsHere: 'Ends here',
     none: 'No trains found in the coming days.',
     basis: 'Timetable times · <b>no live delays</b>',
     infoTitle: 'About these times',
@@ -30,7 +30,7 @@ const STRINGS = {
     locFar: (km) => `התחנה הקרובה ביותר רחוקה כ-${Math.round(km)} ק״מ.`,
     min: 'דק׳', now: 'עכשיו', today: 'היום', tomorrow: 'מחר',
     hm: (h, m) => `${h} ש׳ ${String(m).padStart(2, '0')} ד׳`,
-    to: (x) => `ל${x}`, startsHere: 'מתחילה כאן', endsHere: 'מסיימת כאן',
+    to: (x) => `ל${x}`, from: (x) => `מ${x}`, startsHere: 'מתחילה כאן', endsHere: 'מסיימת כאן',
     none: 'לא נמצאו רכבות בימים הקרובים.',
     basis: 'זמני לוח זמנים · <b>אין עיכובים בזמן אמת</b>',
     infoTitle: 'על הזמנים שמוצגים',
@@ -89,8 +89,12 @@ function el(tag, cls, text) {
 }
 
 function describe(tr) {
-  if (tr.endsHere) return { main: t().endsHere, tag: '' };
-  return { main: t().to(stationName(data.stations[tr.destIdx])), tag: tr.startsHere ? t().startsHere : '' };
+  const name = (i) => stationName(data.stations[i]);
+  if (mode === 'departures') {
+    return { main: t().to(name(tr.destIdx)), tag: tr.startsHere ? t().startsHere : '' };
+  }
+  if (tr.startsHere) return { main: t().startsHere, tag: t().to(name(tr.destIdx)) };
+  return { main: t().from(name(tr.originIdx)), tag: tr.endsHere ? t().endsHere : '' };
 }
 
 function renderHero(first, now) {
