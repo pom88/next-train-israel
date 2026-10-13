@@ -114,7 +114,7 @@ const MAX_WAIT_MS = 3 * 3600 * 1000;
  * Default: journeys leaving from now on, earliest arrival first.
  * With arriveBy (epoch ms): journeys arriving no later than that, latest arrival first (leave as late as possible).
  */
-export function plan(data, fromIdx, toIdx, nowMs, { arriveBy = null, limit = 6, maxChanges = 1 } = {}) {
+export function plan(data, fromIdx, toIdx, nowMs, { arriveBy = null, limit = 8, maxChanges = 1 } = {}) {
   if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0) return [];
   const stops = tripStops(data);
   const today = ymdOf(nowMs);
@@ -172,9 +172,10 @@ export function plan(data, fromIdx, toIdx, nowMs, { arriveBy = null, limit = 6, 
 
   const inWindow = candidates.filter((c) => (arriveBy == null ? c.dep >= nowMs - 30 * 1000 : c.arr <= arriveBy && c.dep >= nowMs - 30 * 1000));
 
-  // Keep only journeys no other journey beats on both departure and arrival (fewer changes wins ties).
+  // Every direct train is listed. A journey with a change is dropped when another journey leaves later and arrives earlier.
   const best = [];
   for (const c of inWindow) {
+    if (c.legs.length === 1) { best.push(c); continue; }
     const beaten = inWindow.some((o) => o !== c && o.dep >= c.dep && o.arr <= c.arr &&
       (o.dep > c.dep || o.arr < c.arr || o.legs.length < c.legs.length));
     if (!beaten) best.push(c);

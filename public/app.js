@@ -196,7 +196,7 @@ function renderPlan(now) {
   const target = planMode === 'arrive' ? arriveTarget(now) : null;
   $('arriveDay').textContent = target ? dayLabel(target, now) : '';
   const key = [planFrom, planTo, target, Math.floor(now / 60000)].join();
-  if (planCache.key !== key) planCache = { key, list: plan(data, planFrom, planTo, now, { arriveBy: target, limit: 6 }) };
+  if (planCache.key !== key) planCache = { key, list: plan(data, planFrom, planTo, now, { arriveBy: target, limit: 8 }) };
   const list = planCache.list;
   if (!list.length) { msg.textContent = target ? t().noJourneysBy : t().noJourneys; msg.hidden = false; return; }
 

@@ -109,11 +109,11 @@ const net = {
   validFrom: '20261001', validTo: '20261031',
   stations: [{}, {}, {}],
   services: { S: ['1111111', '20261001', '20261031'] },
-  trips: [['X', 'S', 0, 2], ['Y', 'S', 0, 1], ['Z', 'S', 1, 2], ['W', 'S', 2, 0]],
+  trips: [['X', 'S', 0, 2], ['Y', 'S', 0, 1], ['Z', 'S', 1, 2], ['W', 'S', 2, 0], ['R', 'S', 0, 2]],
   calls: [
-    [[0, 8 * H, 8 * H, 1], [1, 8.5 * H, 8.5 * H, 1], [3, 12 * H, 12 * H, 2]],
+    [[0, 8 * H, 8 * H, 1], [1, 8.5 * H, 8.5 * H, 1], [3, 12 * H, 12 * H, 2], [4, 7 * H + 3000, 7 * H + 3000, 1]],
     [[0, 9 * H, 9 * H + 60, 2], [1, 9 * H + 1200, 9 * H + 1200, 2], [2, 9.5 * H, 9.5 * H, 1]],
-    [[0, 10 * H, 10 * H, 3], [2, 10.5 * H, 10.5 * H, 2], [3, 11 * H, 11 * H, 1]],
+    [[0, 10 * H, 10 * H, 3], [2, 10.5 * H, 10.5 * H, 2], [3, 11 * H, 11 * H, 1], [4, 11 * H + 1200, 11 * H + 1200, 2]],
   ],
 };
 const at = (h, m = 0) => Date.parse('2026-10-11T00:00:00Z') + ((h - 3) * 60 + m) * 60000; // Sun 2026-10-11, Israel summer time
@@ -125,6 +125,11 @@ test('plan: sorted by arrival; direct and a later change both offered, dominated
   assert.equal(iso(r[1].arr), iso(at(10, 30)));
   assert.ok(r.every((j, i) => i === 0 || j.arr >= r[i - 1].arr));
   assert.ok(!r.some((j) => j.legs[0].number === 'X' && j.legs.length === 2));
+});
+
+test('plan: a slow direct train that a later train beats is still listed', () => {
+  const r = plan(net, 0, 2, at(7));
+  assert.deepEqual(r.slice(0, 3).map((j) => j.legs.map((l) => l.number)), [['X'], ['Y', 'Z'], ['R']]);
 });
 
 test('plan: a change needs at least 4 minutes', () => {
@@ -158,6 +163,7 @@ test('plan: real timetable, Beer Sheva -> Tel Aviv by arrival, both languages of
   const now = Date.parse('2026-10-12T06:00:00Z');
   const r = plan(data, from, to, now, { limit: 6 });
   assert.equal(r.length, 6);
+  assert.ok(plan(data, from, to, now, { limit: 40 }).some((j) => j.legs.length === 1 && j.legs[0].number === '670'), 'slow 18:12 train is listed');
   for (let i = 0; i < r.length; i++) {
     assert.ok(r[i].dep >= now - 30000 && r[i].arr > r[i].dep);
     if (i) assert.ok(r[i].arr >= r[i - 1].arr);
