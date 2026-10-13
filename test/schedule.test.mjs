@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { serviceTimeToEpoch, upcoming, plan, dataStatus, nearestStation, ymdOf } from '../public/schedule.js';
+import { serviceTimeToEpoch, serviceRunsOn, upcoming, plan, dataStatus, nearestStation, ymdOf } from '../public/schedule.js';
 
 const iso = (ms) => new Date(ms).toISOString();
 
@@ -160,14 +160,27 @@ test('plan: real timetable, Beer Sheva -> Tel Aviv by arrival, both languages of
   const data = JSON.parse(await readFile(new URL('../public/data/timetable.json', import.meta.url)));
   const from = data.stations.findIndex((s) => s.id === '17084');
   const to = data.stations.findIndex((s) => s.id === '17038');
-  const now = Date.parse('2026-10-12T06:00:00Z');
+  let day = Date.UTC(+data.validFrom.slice(0, 4), +data.validFrom.slice(4, 6) - 1, +data.validFrom.slice(6, 8)) + 86400000;
+  while ([5, 6].includes(new Date(day).getUTCDay())) day += 86400000;
+  const now = day + 6 * 3600 * 1000; // 08:00-09:00 Israel on a weekday inside the validity window
   const r = plan(data, from, to, now, { limit: 6 });
   assert.equal(r.length, 6);
-  assert.ok(plan(data, from, to, now, { limit: 40 }).some((j) => j.legs.length === 1 && j.legs[0].number === '670'), 'slow 18:12 train is listed');
+  // every direct train leaving in the next 4 hours must be listed, even slow ones
+  const ymd = ymdOf(now);
+  const end = now + 4 * 3600 * 1000;
+  const expected = new Set();
+  for (const [tripIdx, , dep, seq] of data.calls[from]) {
+    const later = data.calls[to].find((c) => c[0] === tripIdx && c[3] > seq);
+    const at = serviceTimeToEpoch(ymd, dep);
+    if (later && serviceRunsOn(data.services[data.trips[tripIdx][1]], ymd) && at >= now && at <= end) expected.add(at);
+  }
+  assert.ok(expected.size > 0);
+  const listed = new Set(plan(data, from, to, now, { limit: 200 }).filter((j) => j.legs.length === 1).map((j) => j.dep));
+  for (const at of expected) assert.ok(listed.has(at), `direct train at ${iso(at)} missing`);
   for (let i = 0; i < r.length; i++) {
     assert.ok(r[i].dep >= now - 30000 && r[i].arr > r[i].dep);
     if (i) assert.ok(r[i].arr >= r[i - 1].arr);
   }
-  const by = plan(data, from, to, now, { arriveBy: Date.parse('2026-10-12T09:00:00Z') });
-  assert.ok(by.length > 0 && by.every((j) => j.arr <= Date.parse('2026-10-12T09:00:00Z')));
+  const by = plan(data, from, to, now, { arriveBy: now + 3 * 3600 * 1000 });
+  assert.ok(by.length > 0 && by.every((j) => j.arr <= now + 3 * 3600 * 1000));
 });
